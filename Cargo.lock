@@ -1677,6 +1677,7 @@ dependencies = [
  "color-eyre",
  "crossterm",
  "ratatui",
+ "regex",
  "thiserror 2.0.11",
 ]
 

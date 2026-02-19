@@ -1,100 +1,67 @@
-use ratatui::{
-    DefaultTerminal,
-    crossterm::event::{self, Event, KeyCode, KeyEventKind},
-    layout::{Constraint, Layout},
-    style::{Style, Stylize},
-    widgets::{Block, List, ListState, Paragraph},
-};
+mod confirm;
+mod select_list;
 
-pub(crate) struct TerminalResult {
-    pub confirmed: bool,
-    pub items: Vec<String>,
+#[allow(unused_imports)]
+pub(crate) use confirm::ConfirmPrompt;
+pub(crate) use select_list::{SelectList, SelectResult};
+
+use crossterm::{ExecutableCommand, cursor, terminal};
+use ratatui::{TerminalOptions, Viewport, prelude::*};
+use std::io::stdout;
+
+pub(crate) struct InlineTerminal {
+    terminal: Terminal<CrosstermBackend<std::io::Stdout>>,
+    start_row: u16,
+    cleaned_up: bool,
 }
 
-pub(crate) struct Terminal {
-    items: Vec<String>,
-    title: String,
-    list_state: ListState,
-    quit: bool,
-    confirmed: bool,
-}
+impl InlineTerminal {
+    pub(crate) fn new(height: u16, width: u16) -> crate::Result<Self> {
+        terminal::enable_raw_mode()?;
 
-impl Terminal {
-    pub fn new_inline(items: Vec<String>, title: &str) -> Self {
-        let mut list_state = ListState::default();
-        list_state.select_first();
-
-        Self {
-            items,
-            title: title.to_string(),
-            list_state,
-            quit: false,
-            confirmed: false,
-        }
-    }
-
-    pub fn run(mut self) -> crate::Result<TerminalResult> {
-        let mut terminal = ratatui::init();
-        let result = self.event_loop(&mut terminal);
-        ratatui::restore();
-        result
-    }
-
-    fn event_loop(&mut self, terminal: &mut DefaultTerminal) -> crate::Result<TerminalResult> {
-        while !self.quit {
-            terminal.draw(|frame| self.render(frame))?;
-            self.handle_event()?;
+        for _ in 0..height {
+            println!();
         }
 
-        Ok(TerminalResult {
-            confirmed: self.confirmed,
-            items: std::mem::take(&mut self.items),
+        stdout().execute(cursor::MoveUp(height))?;
+
+        let start_row = cursor::position()?.1;
+
+        let backend = CrosstermBackend::new(stdout());
+        let terminal = Terminal::with_options(
+            backend,
+            TerminalOptions {
+                viewport: Viewport::Fixed(Rect::new(0, start_row, width, height)),
+            },
+        )?;
+
+        Ok(Self {
+            terminal,
+            start_row,
+            cleaned_up: false,
         })
     }
 
-    fn render(&mut self, frame: &mut ratatui::Frame) {
-        let [list_area, hint_area] =
-            Layout::vertical([Constraint::Min(1), Constraint::Length(1)])
-                .areas(frame.area());
-
-        let list = List::new(self.items.clone())
-            .block(Block::bordered().title(self.title.as_str()))
-            .highlight_style(Style::new().reversed())
-            .highlight_symbol("▶ ");
-
-        frame.render_stateful_widget(list, list_area, &mut self.list_state);
-
-        let hints = Paragraph::new("[s/Enter] Save  [q/Esc] Quit")
-            .centered()
-            .dim();
-
-        frame.render_widget(hints, hint_area);
+    pub(crate) fn draw(&mut self, f: impl FnOnce(&mut Frame)) -> crate::Result<()> {
+        self.terminal.draw(f)?;
+        Ok(())
     }
 
-    fn handle_event(&mut self) -> crate::Result<()> {
-        let Event::Key(key) = event::read()? else {
-            return Ok(());
-        };
-
-        if key.kind != KeyEventKind::Press {
+    pub(crate) fn cleanup(&mut self) -> crate::Result<()> {
+        if self.cleaned_up {
             return Ok(());
         }
+        self.cleaned_up = true;
 
-        match key.code {
-            KeyCode::Char('j') | KeyCode::Down => self.list_state.select_next(),
-            KeyCode::Char('k') | KeyCode::Up => self.list_state.select_previous(),
-            KeyCode::Char('g') | KeyCode::Home => self.list_state.select_first(),
-            KeyCode::Char('G') | KeyCode::End => self.list_state.select_last(),
-            KeyCode::Char('s') | KeyCode::Enter => {
-                self.confirmed = true;
-                self.quit = true;
-            }
-            KeyCode::Char('q') | KeyCode::Esc => {
-                self.quit = true;
-            }
-            _ => {}
-        }
-
+        terminal::disable_raw_mode()?;
+        stdout().execute(cursor::MoveTo(0, self.start_row))?;
+        stdout().execute(terminal::Clear(terminal::ClearType::FromCursorDown))?;
         Ok(())
+    }
+}
+
+impl Drop for InlineTerminal {
+    fn drop(&mut self) {
+        let _ = self.cleanup();
     }
 }
