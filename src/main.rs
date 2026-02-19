@@ -8,10 +8,10 @@ use commands::*;
 type Result<T> = color_eyre::Result<T>;
 
 #[derive(clap::Parser)]
-#[clap(name = "Rust CLI Starter")]
-#[clap(author = "Myles <myles@themapletree.io>")]
+#[clap(name = "utils")]
+#[clap(author = "Myles <myles@polypixel.io>")]
 #[clap(version = "0.1.0")]
-#[clap(about = "A simple rust CLI starter with a scaffolding tool")]
+#[clap(about = "Just a bunch of personal random utils")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -34,6 +34,7 @@ enum Commands {
     #[clap(about = "Scaffolding command for quickly generating new files in your project")]
     #[clap(long_about = SCAFFOLD_ABOUT)]
     Scaffold(scaffold::Arguments),
+    History(history::Arguments),
 }
 
 fn main() -> crate::Result<()> {
@@ -46,6 +47,7 @@ fn main() -> crate::Result<()> {
             Commands::Example(args) => example::run(args),
             #[cfg(debug_assertions)]
             Commands::Scaffold(args) => scaffold::run(args),
+            Commands::History(args) => history::run(args),
         }?;
     };
 

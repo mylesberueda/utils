@@ -3,25 +3,25 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/MylesWritesCode/rust-cli-starter">
+  <a href="https://github.com/mylesberueda/utils">
     <img src=".meta/logo.png" alt="Logo">
   </a>
 
-<h3 align="center">Rust CLI Starter</h3>
+<h3 align="center">utils</h3>
 
   <p align="center">
-    A starter template for a Rust CLI program
+    Random utils for my workflow; nothing special here.
     <br />
-    <a href="https://github.com/MylesWritesCode/rust-cli-starter">
+    <a href="https://github.com/mylesberueda/utils">
       <strong>Explore the docs »</strong>
     </a>
     <br />
     <br />
-    <a href="https://github.com/MylesWritesCode/rust-cli-starter">View Demo</a>
+    <a href="https://github.com/mylesberueda/utils">View Demo</a>
     ·
-    <a href="https://github.com/MylesWritesCode/rust-cli-starter/issues">Report Bug</a>
+    <a href="https://github.com/mylesberueda/utils/issues">Report Bug</a>
     ·
-    <a href="https://github.com/MylesWritesCode/rust-cli-starter/issues">Request Feature</a>
+    <a href="https://github.com/mylesberueda/utils/issues">Request Feature</a>
   </p>
 </div>
 
@@ -102,13 +102,13 @@ installation steps below.
 
 ```
 # with https
-git clone https://github.com/MylesWritesCode/rust-cli-starter.git
+git clone https://github.com/mylesberueda/utils.git
 
 # or ssh
-git clone git@github.com:MylesWritesCode/rust-cli-starter.git
+git clone git@github.com:mylesberueda/utils.git
 ```
 
-2. Remove the `.git` directory
+1. Remove the `.git` directory
 
 ```
 # cd into the cloned directory
@@ -118,14 +118,14 @@ cd rust-cli-starter
 rm -rf .git
 ```
 
-3. Re-init git
+1. Re-init git
 
 ```
 git init
 ```
 
-4. Create a repo on your preferred git hosting site (e.g. GitHub)
-5. Add your new remote to your local git instance
+1. Create a repo on your preferred git hosting site (e.g. GitHub)
+2. Add your new remote to your local git instance
 
 ```
 git remote add origin <your url>
@@ -134,7 +134,7 @@ git commit -m 'init'
 git push origin <your branch>
 ```
 
-6. Start hacking away
+1. Start hacking away
 
 ### Simpler, since you're here
 
@@ -172,7 +172,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - [ ] Feature 3
   - [ ] Nested Feature
 
-See the [open issues](https://github.com/MylesWritesCode/rust-cli-starter/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/mylesberueda/utils/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -180,7 +180,7 @@ See the [open issues](https://github.com/MylesWritesCode/rust-cli-starter/issues
 
 ## Contributing
 
-[![Contributors](https://img.shields.io/github/contributors/MylesWritesCode/rust-cli-starter.svg?style=for-the-badge)](https://github.com/MylesWritesCode/rust-cli-starter/graphs/contributors)
+[![Contributors](https://img.shields.io/github/contributors/mylesberueda/utils.svg?style=for-the-badge)](https://github.com/mylesberueda/utils/graphs/contributors)
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -199,7 +199,7 @@ Don't forget to give the project a star! Thanks again!
 
 ## License
 
-[![LICENSE](https://img.shields.io/github/license/MylesWritesCode/rust-cli-starter.svg?style=for-the-badge)](https://github.com/MylesWritesCode/rust-wasm/blob/master/LICENSE)
+[![LICENSE](https://img.shields.io/github/license/mylesberueda/utils.svg?style=for-the-badge)](https://github.com/mylesberueda/utils/blob/master/LICENSE)
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
@@ -213,7 +213,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 [![LinkedIn](https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555)](https://linkedin.com/in/myles-berueda)
 [![Mastodon](https://img.shields.io/mastodon/follow/113004977572109573?domain=https%3A%2F%2Fmstdn.social&style=for-the-badge&label=MSTDN.SOCIAL)](https://mstdn.social/@mylesberueda)
-[![Github](https://img.shields.io/github/followers/MylesWritesCode?style=for-the-badge&label=GITHUB)](https://github.com/MylesWritesCode)
+[![Github](https://img.shields.io/github/followers/MylesWritesCode?style=for-the-badge&label=GITHUB)](https://github.com/mylesberueda)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
