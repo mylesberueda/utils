@@ -39,11 +39,13 @@ pub(crate) fn run(args: &Arguments) -> crate::Result<()> {
     }
 }
 
+#[derive(Debug, Clone)]
 enum CommandStatus {
     Save,
     Delete,
 }
 
+#[derive(Debug, Clone)]
 struct Command {
     raw: String,
     // Got lazy, but we could make the list display which are going to be
@@ -91,6 +93,9 @@ fn rank(file: &String, save: bool, exclude: &Option<Vec<String>>) -> crate::Resu
     }
 
     if save {
+        // nushell reads from the end, so reverse the list (higher priority
+        // commands) should be at the end of the file
+        let commands = commands.into_iter().rev().collect::<Vec<_>>();
         write_history(&path, &commands)?;
     } else {
         let list_height = (commands.len() as u16).min(20) + 5;
@@ -103,12 +108,16 @@ fn rank(file: &String, save: bool, exclude: &Option<Vec<String>>) -> crate::Resu
 
         match result {
             SelectResult::Confirmed => {
-                write_history(&path, select.items())?;
-                println!(
-                    "Saved {} commands to {}",
-                    select.items().len(),
-                    path.display()
-                );
+                // Same as above, need to reverse the list on save.
+                let select = select
+                    .items()
+                    .to_vec()
+                    .into_iter()
+                    .rev()
+                    .collect::<Vec<_>>();
+
+                write_history(&path, &select)?;
+                println!("Saved {} commands to {}", select.len(), path.display());
             }
             SelectResult::Cancelled => {
                 println!("Cancelled.");
