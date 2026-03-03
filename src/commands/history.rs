@@ -48,10 +48,6 @@ enum CommandStatus {
 #[derive(Debug, Clone)]
 struct Command {
     raw: String,
-    // Got lazy, but we could make the list display which are going to be
-    // deleted, and we could let the user add/remove selections while in the
-    // list before confirmation.
-    #[allow(dead_code)]
     status: CommandStatus,
 }
 
@@ -101,7 +97,20 @@ fn rank(file: &String, save: bool, exclude: &Option<Vec<String>>) -> crate::Resu
         let list_height = (commands.len() as u16).min(20) + 5;
         let mut terminal = InlineTerminal::new(list_height, 120)?;
         let mut select = SelectList::new(commands, "Ranked History", |s: &Command| s.raw.clone())
-            .with_confirm("Save", "Cancel");
+            .with_confirm("Save", "Cancel")
+            .with_toggleable();
+
+        // Pre-deselect items marked for deletion (matched by --exclude)
+        let to_deselect: Vec<usize> = select
+            .items()
+            .iter()
+            .enumerate()
+            .filter(|(_, cmd)| matches!(cmd.status, CommandStatus::Delete))
+            .map(|(i, _)| i)
+            .collect();
+        for i in to_deselect {
+            select.set_selected(i, false);
+        }
 
         let result = select.run(&mut terminal)?;
         terminal.cleanup()?;
@@ -109,15 +118,15 @@ fn rank(file: &String, save: bool, exclude: &Option<Vec<String>>) -> crate::Resu
         match result {
             SelectResult::Confirmed => {
                 // Same as above, need to reverse the list on save.
-                let select = select
-                    .items()
-                    .to_vec()
+                let items: Vec<_> = select
+                    .selected_items()
                     .into_iter()
                     .rev()
-                    .collect::<Vec<_>>();
+                    .cloned()
+                    .collect();
 
-                write_history(&path, &select)?;
-                println!("Saved {} commands to {}", select.len(), path.display());
+                write_history(&path, &items)?;
+                println!("Saved {} commands to {}", items.len(), path.display());
             }
             SelectResult::Cancelled => {
                 println!("Cancelled.");

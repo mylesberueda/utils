@@ -23,6 +23,8 @@ pub(crate) struct SelectList<T> {
     header: String,
     display_fn: fn(&T) -> String,
     confirm: Option<ConfirmButtons>,
+    toggleable: bool,
+    selected: Vec<bool>,
 }
 
 impl<T> SelectList<T> {
@@ -32,6 +34,7 @@ impl<T> SelectList<T> {
         display_fn: fn(&T) -> String,
     ) -> Self {
         let mut state = ListState::default();
+        let len = items.len();
         if !items.is_empty() {
             state.select(Some(0));
         }
@@ -41,6 +44,8 @@ impl<T> SelectList<T> {
             header: header.into(),
             display_fn,
             confirm: None,
+            toggleable: false,
+            selected: vec![true; len],
         }
     }
 
@@ -57,8 +62,27 @@ impl<T> SelectList<T> {
         self
     }
 
+    pub(crate) fn with_toggleable(mut self) -> Self {
+        self.toggleable = true;
+        self
+    }
+
+    pub(crate) fn set_selected(&mut self, index: usize, value: bool) {
+        if let Some(s) = self.selected.get_mut(index) {
+            *s = value;
+        }
+    }
+
     pub(crate) fn items(&self) -> &[T] {
         &self.items
+    }
+
+    pub(crate) fn selected_items(&self) -> Vec<&T> {
+        self.items
+            .iter()
+            .zip(self.selected.iter())
+            .filter_map(|(item, sel)| if *sel { Some(item) } else { None })
+            .collect()
     }
 
     pub(crate) fn run(&mut self, terminal: &mut InlineTerminal) -> crate::Result<SelectResult> {
@@ -100,9 +124,28 @@ impl<T> SelectList<T> {
                 f.render_widget(Paragraph::new(header_line), chunks[0]);
                 f.render_widget(Paragraph::new(""), chunks[1]);
 
+                let toggleable = self.toggleable;
+                let selected = &self.selected;
+
                 let list_items: Vec<ListItem> = items
                     .iter()
-                    .map(|item| ListItem::new(display_fn(item)))
+                    .enumerate()
+                    .map(|(i, item)| {
+                        let text = display_fn(item);
+                        if toggleable {
+                            let (check, check_style, text_style) = if selected[i] {
+                                ("● ", Style::default().fg(Color::Green), Style::default())
+                            } else {
+                                ("○ ", Style::default().fg(Color::Gray).dim(), Style::default().fg(Color::Gray).dim())
+                            };
+                            ListItem::new(Line::from(vec![
+                                Span::styled(check, check_style),
+                                Span::styled(text, text_style),
+                            ]))
+                        } else {
+                            ListItem::new(text)
+                        }
+                    })
                     .collect();
 
                 let list = List::new(list_items)
@@ -132,13 +175,21 @@ impl<T> SelectList<T> {
                         Span::raw("  "),
                         Span::styled(format!(" {} ", buttons.cancel_label), cancel_style),
                         Span::styled(
-                            "  (← → select, Enter confirm)",
+                            if toggleable {
+                                "  (← → select, Space toggle, Enter confirm)"
+                            } else {
+                                "  (← → select, Enter confirm)"
+                            },
                             Style::default().fg(Color::DarkGray),
                         ),
                     ]);
                     f.render_widget(Paragraph::new(button_line), chunks[4]);
                 } else {
-                    let hint = "  (↑↓ navigate, Enter confirm, Esc cancel)";
+                    let hint = if toggleable {
+                        "  (↑↓ navigate, Space toggle, Enter confirm, Esc cancel)"
+                    } else {
+                        "  (↑↓ navigate, Enter confirm, Esc cancel)"
+                    };
                     f.render_widget(
                         Paragraph::new(Span::styled(hint, Style::default().fg(Color::DarkGray))),
                         chunks[3],
@@ -206,6 +257,12 @@ impl<T> SelectList<T> {
 
                     KeyCode::Char('n') | KeyCode::Char('N') if has_buttons => {
                         return Ok(SelectResult::Cancelled);
+                    }
+
+                    KeyCode::Char(' ') if self.toggleable => {
+                        if let Some(cursor) = self.state.selected() {
+                            self.selected[cursor] = !self.selected[cursor];
+                        }
                     }
 
                     KeyCode::Enter => {
